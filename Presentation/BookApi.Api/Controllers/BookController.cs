@@ -1,37 +1,75 @@
-﻿using BookApi.Application.Repositories;
-using BookApi.Domain.Entities;
+﻿using BookWebApi.Application.Features.Books.Command.CreateBook;
+using BookWebApi.Application.Features.Books.Command.DeleteBook;
+using BookWebApi.Application.Features.Books.Command.UpdateBook;
+using BookWebApi.Application.Features.Books.Queries.GetAllBooks;
+using BookWebApi.Application.Features.Books.Queries.GetById;
+using BookWebApi.Application.Interfaces.UnitOfWorks;
+using BookWebApi.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace BookApi.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class BookController : ControllerBase
     {
-        readonly private IBookWriteRepository _bookWriteRepository;
-        readonly private IBookReadRepository _bookReadRepository;
-        public BookController(IBookWriteRepository bookWriteRepository,IBookReadRepository bookReadRepository)
+        private readonly IMediator _mediator;
+        public BookController(IMediator mediator) 
         {
-            _bookWriteRepository = bookWriteRepository;
-            _bookReadRepository = bookReadRepository;   
+            this._mediator = mediator;
         }
 
         [HttpGet]
-        public async Task Get()
+        //[Authorize]
+        public async Task<IActionResult> GetAllBooks()
         {
-            Book book = await _bookReadRepository.GetByIdAsync("D557C164-E016-46BB-A2F0-0C4CA5E2EA0C");
-            book.Price = 100;
-            await _bookWriteRepository.SaveAsync();
+            var response = await _mediator.Send(new GetAllBooksQueryRequest());
+            return Ok(response);
+        }
 
+        [HttpPost]
+        public async Task<IActionResult>CreateBook(CreateBookCommandRequest request)
+        {
+            await _mediator.Send(request);
+            return Ok();
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateBook(UpdateBookCommandRequest request)
+        {
+            await _mediator.Send(request);
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteBook(DeleteBookCommandRequest request)
+        {
+            await _mediator.Send(request);
+            return Ok();
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        public async Task<IActionResult> GetById(int id)
         {
-           Book book=await  _bookReadRepository.GetByIdAsync(id);
-            return Ok(book);    
+            var query = new GetByIdQueryRequest(id);
+            var result = await _mediator.Send(query);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
         }
+
+
+        
+
+
+
     }
 }

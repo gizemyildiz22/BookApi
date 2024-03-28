@@ -1,68 +1,55 @@
-﻿using BookApi.Application.Repositories;
-using BookApi.Domain.Entities.Common;
-using BookApi.Persistence.Contexts;
+﻿using BookWebApi.Application.Interfaces.Repositories;
+using BookWebApi.Domain.Common;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BookApi.Persistence.Repositories
+namespace BookWebApi.Persistence.Repositories
 {
-    public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
+    public class WriteRepository<T>:IWriteRepository<T> where T : class,IBaseEntity,new()
     {
-        readonly private BookApiDbContext _context;
-        public WriteRepository(BookApiDbContext context)
+        private readonly DbContext dbContext;
+
+        public WriteRepository(DbContext dbContext) 
         {
-            _context = context;
+            this.dbContext = dbContext;
         }
-        public DbSet<T> Table => _context.Set<T>();
-
-        public async Task<bool> AddAsync(T model)
-        {
-            EntityEntry<T> entityEntry = await Table.AddAsync(model);
-            return entityEntry.State == EntityState.Added;
-        }
-
-        public async Task<bool> AddRangeAsync(List<T>datas)
-        {
-            await Table.AddRangeAsync(datas);
-            return true;
-        }
-
-        public bool Remove(T model)
-        {
-            EntityEntry<T>entityEntry=Table.Remove(model);  
-            return entityEntry.State==EntityState.Deleted;      
-        }
-
-        public bool RemoveRange(List<T> datas)
-        {
-            Table.RemoveRange(datas);
-            return true;
-        }
-
-        public async Task<bool> RemoveAsync(string id)
-        {
-            T model=await Table.FirstOrDefaultAsync(data => data.Id == Guid.Parse(id));
-            return Remove(model);
-         
-        }
-
-
-
-        public bool Update(T model)
-        {
-            EntityEntry entityEntry=Table.Update(model);
-            return entityEntry.State == EntityState.Modified;
-        }
-
-        public async Task<int> SaveAsync()
-         =>await _context.SaveChangesAsync();
         
+        private DbSet<T> Table { get=>dbContext.Set<T>(); }
 
-        
+        public async Task  AddAsync(T entity)
+        {
+            await Table.AddAsync(entity); 
+           
+        }
+
+        public async Task AddRangeAsync(IList<T> entities)
+        {
+            await Table.AddRangeAsync(entities);
+        }
+
+        public async Task<T> UpdateAsync(T entity)
+        {
+            await Task.Run(()=>Table.Update(entity));
+            return entity;
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            await Task.Run(()=>Table.Remove(entity));
+    
+        }
+
+        public async Task DeleteRangeAsync(IList<T> entity)
+        {
+            await Task.Run(() => Table.RemoveRange(entity));
+
+        }
+
+
+
     }
 }

@@ -1,22 +1,29 @@
-﻿using BookApi.Domain.Entities.Common;
+﻿using BookWebApi.Domain;
+using BookWebApi.Domain.Common;
+using BookWebApi.Domain.Entities.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BookApi.Domain.Entities
+namespace BookWebApi.Domain.Entities
 {
     public class Customer:BaseEntity
     {
-        public string CustomerName { get; set; }
-        public string CustomerSurname { get; set; }
-        public string CustomerPhone { get; set; }
-        public string CustomerEmail { get; set; }
-        public string Password { get; set; }
-        public string CustomerDescription { get; set; }
-        public bool IsActive { get; set; }=false;
-        public ICollection<Order> Orders { get; set; }
+        public Customer() { }
+        public Customer(string name, string surname, string phone, string email)
+        {
+            Name = name;
+            Surname = surname;
+            Phone = phone;
+            Email = email;
+        }
 
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Phone { get; set; }
+        public string Email { get; set; }
+       
     }
 }
